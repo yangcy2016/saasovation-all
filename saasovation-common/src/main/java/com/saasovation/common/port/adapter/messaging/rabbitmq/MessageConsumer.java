@@ -44,10 +44,9 @@ public class MessageConsumer {
                     String type      = delivery.getProperties().getType();
                     if(filterBy(type)){
                         String messageId = delivery.getProperties().getMessageId();
-                        long   deliveryTag = 0L;//delivery.getProperties().getDeliveryMode();
+                        long   deliveryTag = delivery.getEnvelope().getDeliveryTag();
                         String textMessage = getTextResponce(delivery);
                         Date   occurredOn  = delivery.getProperties().getTimestamp();
-                        System.out.println(textMessage);
                         listener.handleMessage(
                                 type,
                                 messageId,

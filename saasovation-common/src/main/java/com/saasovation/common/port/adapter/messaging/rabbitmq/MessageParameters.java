@@ -8,21 +8,29 @@ public class MessageParameters {
 	private String messageId;
 	private Date occurredOn;
 	private String routeKey;
-	private MessageParameters(String type, String messageId, Date occurredOn,String routeKey) {
+	//rabbitmq 消息持久化 2：持久化
+	private Integer deliveryMode;
+	private MessageParameters(String type, String messageId, Date occurredOn,String routeKey,Integer deliveryMode) {
 		super();
 		this.type = type;
 		this.messageId = messageId;
 		this.occurredOn = occurredOn;
 		this.routeKey = routeKey;
+		this.deliveryMode = deliveryMode;
 	}
 	public static MessageParameters durableTextParameters(String type,
 			String messageId, Date occurredOn) {
-		return new MessageParameters(type, messageId, occurredOn,"*");
+		return new MessageParameters(type, messageId, occurredOn,"*",1);
 	}
 	public static MessageParameters durableTextParameters(String type,
 														  String messageId, Date occurredOn,String routeKey) {
-		return new MessageParameters(type, messageId, occurredOn,routeKey);
+		return new MessageParameters(type, messageId, occurredOn,routeKey,1);
 	}
+	public static MessageParameters durableTextParameters(String type,
+														  String messageId, Date occurredOn,String routeKey,Integer deliveryMode) {
+		return new MessageParameters(type, messageId, occurredOn,routeKey,deliveryMode);
+	}
+
 	public String getType() {
 		return type;
 	}
@@ -36,8 +44,7 @@ public class MessageParameters {
 	public String getRouteKey() {
 		return routeKey;
 	}
-
-	public void setRouteKey(String routeKey) {
-		this.routeKey = routeKey;
+	public Integer getDeliveryMode() {
+		return deliveryMode;
 	}
 }

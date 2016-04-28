@@ -52,7 +52,9 @@ public abstract class ExchangeListener {
                     @Override
                     public void handleMessage(String type, String messageId, Date timestamp,
                                               String textMessage, long deliveryTag, boolean isRedelivery) {
+                        //pro process
                         filteredDispatch(type,textMessage);
+                        //after process
                     }
                 });
     }

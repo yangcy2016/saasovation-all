@@ -1,9 +1,9 @@
 package com.saasovation.agilepm.infrastructure.messaging;
 
+import com.saasovation.agilepm.application.team.TeamService;
 import com.saasovation.agilepm.domain.model.DomainRegistry;
 import com.saasovation.agilepm.domain.model.team.EnableProductOwnerCmd;
 import com.saasovation.agilepm.domain.model.team.EnableTeamMemberCmd;
-import com.saasovation.agilepm.domain.model.team.TeamService;
 import com.saasovation.common.media.NotificationReader;
 import com.saasovation.common.port.adapter.messaging.rabbitmq.ConnectionSettings;
 import com.saasovation.common.port.adapter.messaging.rabbitmq.Exchange;
@@ -40,17 +40,17 @@ public class TeamMemberEnablerListener extends ExchangeListener {
         String tenantId     = reader.stringValue("tenantId.id");
         String userName     = reader.stringValue("userName");
         Date   occurredOn   = new Date(reader.stringValue("occurredOn"));
+        EnableProductOwnerCmd cmd =new EnableProductOwnerCmd(
+                tenantId,
+                userName,
+                firstName,
+                lastName,
+                emailAddress,
+                occurredOn
+        );
         if("ScrumProductOwner".equals(roleName)){
-            this.teamService().enableProductOwner(
-                    new EnableProductOwnerCmd(
-                            tenantId,
-                            userName,
-                            firstName,
-                            lastName,
-                            emailAddress,
-                            occurredOn
-                    )
-            );
+            System.out.println(cmd);
+            //this.teamService().enableProductOwner(cmd);
         }else {
             this.teamService().enableTeamMemberOwner(
                     new EnableTeamMemberCmd(

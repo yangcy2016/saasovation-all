@@ -20,7 +20,6 @@ public class MessageProducer {
 			e.printStackTrace();
 		}
 	}
-
 	public void send(String notification,String routeKey) {
 		try {
 			exchange.call(notification,routeKey);
@@ -35,6 +34,7 @@ public class MessageProducer {
 				.contentEncoding("UTF-8")//
 				.messageId(parameters.getMessageId())//
 				.timestamp(parameters.getOccurredOn())//
+				.deliveryMode(parameters.getDeliveryMode())//
 				.type(parameters.getType())//
 				.build();//
 	}

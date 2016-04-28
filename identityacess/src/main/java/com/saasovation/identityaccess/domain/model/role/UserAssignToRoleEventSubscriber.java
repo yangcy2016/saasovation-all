@@ -27,10 +27,11 @@ public class UserAssignToRoleEventSubscriber extends AbstractDomainEventSubscrib
                 Exchanges.IDENTITY_ACCESS_EXCHANGE_NAME,
                 true);
         MessageProducer producer = new MessageProducer(exchange);
+        Integer durableMessageMode = 2;
         MessageParameters parameters =  MessageParameters.durableTextParameters(
                 "com.saasovation.identityacess.domain.model.role.UserAssignToRole",
                 UUID.randomUUID().toString(),
-                new Date(),"*");
+                new Date(), "*", durableMessageMode);
         producer.send(jsonString,parameters);
         producer.close();
         System.out.println("===>send message to mq.");

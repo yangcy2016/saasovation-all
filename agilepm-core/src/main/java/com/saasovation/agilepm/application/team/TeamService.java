@@ -1,6 +1,10 @@
-package com.saasovation.agilepm.domain.model.team;
+package com.saasovation.agilepm.application.team;
 
 import com.saasovation.agilepm.domain.model.DomainRegistry;
+import com.saasovation.agilepm.domain.model.team.EnableProductOwnerCmd;
+import com.saasovation.agilepm.domain.model.team.EnableTeamMemberCmd;
+import com.saasovation.agilepm.domain.model.team.ProductOwner;
+import com.saasovation.agilepm.domain.model.team.TeamOwner;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

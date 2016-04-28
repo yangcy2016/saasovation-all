@@ -71,4 +71,16 @@ public class EnableProductOwnerCmd {
     public void setOccurredOn(Date occurredOn) {
         this.occurredOn = occurredOn;
     }
+
+    @Override
+    public String toString() {
+        return "EnableProductOwnerCmd{" +
+                "tenantId='" + tenantId + '\'' +
+                ", userName='" + userName + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", emailAddress='" + emailAddress + '\'' +
+                ", occurredOn=" + occurredOn +
+                '}';
+    }
 }

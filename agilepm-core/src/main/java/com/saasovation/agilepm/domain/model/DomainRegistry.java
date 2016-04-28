@@ -1,6 +1,7 @@
 package com.saasovation.agilepm.domain.model;
 
 
+import com.saasovation.agilepm.application.team.TeamService;
 import com.saasovation.agilepm.domain.model.product.BusinessPriorityCalculator;
 import com.saasovation.agilepm.domain.model.product.ProductRepository;
 import com.saasovation.agilepm.domain.model.product.backlogitem.BacklogItemRepository;
@@ -9,7 +10,6 @@ import com.saasovation.agilepm.domain.model.product.sprint.SprintRepository;
 import com.saasovation.agilepm.domain.model.team.ProductOwnerRepository;
 import com.saasovation.agilepm.domain.model.team.TeamOwnerRepository;
 import com.saasovation.agilepm.domain.model.team.TeamRepository;
-import com.saasovation.agilepm.domain.model.team.TeamService;
 import com.saasovation.agilepm.domain.model.tenant.TenantRepository;
 import com.saasovation.agilepm.infrastructure.persistence.mybatis.BacklogItemMybatisRepository;
 import com.saasovation.agilepm.infrastructure.persistence.mybatis.ProductMybatisRepository;
