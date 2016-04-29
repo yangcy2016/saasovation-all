@@ -56,6 +56,14 @@ public class NotificationReader {
         return jsonObject.get(name).getAsInt();
     }
 
+    public boolean booleanValue(String name){
+        check(name);
+        if(name.contains(CON_DOT)){
+            return cascadeCallBooleanValue(name);
+        }
+        return jsonObject.get(name).getAsBoolean();
+    }
+
     public long longValue(String name){
         check(name);
         if(name.contains(CON_DOT)){
@@ -97,6 +105,10 @@ public class NotificationReader {
     private double cascadeCallDoubleValue(String name){
         String attr = parse(name);
         return inner.get(attr).getAsDouble();
+    }
+    private boolean cascadeCallBooleanValue(String name){
+        String attr = parse(name);
+        return inner.get(attr).getAsBoolean();
     }
     public long cascadeCallLongValue(String name){
         String attr = parse(name);

@@ -10,7 +10,7 @@ public class MessageParameters {
 	private String routeKey;
 	//rabbitmq 消息持久化 2：持久化
 	private Integer deliveryMode;
-	private MessageParameters(String type, String messageId, Date occurredOn,String routeKey,Integer deliveryMode) {
+	private MessageParameters(String type, String messageId, Date occurredOn,String routeKey,int deliveryMode) {
 		super();
 		this.type = type;
 		this.messageId = messageId;
@@ -20,15 +20,11 @@ public class MessageParameters {
 	}
 	public static MessageParameters durableTextParameters(String type,
 			String messageId, Date occurredOn) {
-		return new MessageParameters(type, messageId, occurredOn,"*",1);
+		return new MessageParameters(type, messageId, occurredOn,"*",2);
 	}
 	public static MessageParameters durableTextParameters(String type,
 														  String messageId, Date occurredOn,String routeKey) {
-		return new MessageParameters(type, messageId, occurredOn,routeKey,1);
-	}
-	public static MessageParameters durableTextParameters(String type,
-														  String messageId, Date occurredOn,String routeKey,Integer deliveryMode) {
-		return new MessageParameters(type, messageId, occurredOn,routeKey,deliveryMode);
+		return new MessageParameters(type, messageId, occurredOn,routeKey,2);
 	}
 
 	public String getType() {

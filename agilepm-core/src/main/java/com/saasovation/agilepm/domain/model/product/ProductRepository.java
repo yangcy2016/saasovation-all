@@ -9,4 +9,6 @@ public interface ProductRepository {
 	String nextIdentity();
 
 	void add(Product product);
+
+	Product productOfDiscussionInitiationId(TenantId tenantId, String id);
 }

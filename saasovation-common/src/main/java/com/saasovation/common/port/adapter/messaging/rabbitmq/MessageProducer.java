@@ -12,20 +12,22 @@ public class MessageProducer {
 		this.exchange = exchange;
 	}
 
-	public void send(String notification, MessageParameters messageParameters) {
+	public MessageProducer send(String notification, MessageParameters messageParameters) {
 		try {
 			exchange.call(notification,
 					createMessageProperties(messageParameters),messageParameters.getRouteKey());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return this;
 	}
-	public void send(String notification,String routeKey) {
+	public MessageProducer send(String notification,String routeKey) {
 		try {
 			exchange.call(notification,routeKey);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return this;
 	}
 
 	public BasicProperties createMessageProperties(MessageParameters parameters) {

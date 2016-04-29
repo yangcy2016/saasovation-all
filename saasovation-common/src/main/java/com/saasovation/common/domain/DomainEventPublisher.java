@@ -1,6 +1,7 @@
 package com.saasovation.common.domain;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -58,9 +59,14 @@ public class DomainEventPublisher {
 			System.out.println("process queue event!");
 			publish(take());
 		}
+		this.reset();
 	}
 
 	private  <T> void inQueue(T event){
+		Queue<T> q = queue.get();
+		if(q==null){
+			queue.set(new LinkedBlockingQueue<>());
+		}
 		queue.get().add(event);
 	}
 
@@ -69,7 +75,7 @@ public class DomainEventPublisher {
 	}
 
 	private boolean hasElement(){
-		return !queue.get().isEmpty();
+		return queue.get()==null?false:!queue.get().isEmpty();
 	}
 
 	public DomainEventPublisher reset(){
@@ -93,5 +99,40 @@ public class DomainEventPublisher {
 		for(DomainEventSubscriber<T> aSubscriber:subscriber){
 			registedSubscribers.add(aSubscriber);
 		}
+	}
+
+	public int subscriberSize(){
+		List<DomainEventSubscriber> registedSubscribers = subscribers.get();
+		if(registedSubscribers!=null){
+			return registedSubscribers.size();
+		}
+		return 0;
+	}
+
+	public static void main(String[] args) {
+		DomainEventSubscriber a = new AbstractDomainEventSubscriber<DomainEvent>(){
+			@Override
+			public void handle(DomainEvent aDomainEvent) {
+				System.out.println(aDomainEvent);
+			}
+		};
+		DomainEventPublisher.instance().subscribe(a,a);
+		DomainEventPublisher.instance().publish(new DomainEvent() {
+			@Override
+			public long id() {
+				return 0;
+			}
+
+			@Override
+			public Date occurredOn() {
+				return null;
+			}
+
+			@Override
+			public long version() {
+				return 0;
+			}
+		});
+
 	}
 }

@@ -39,4 +39,5 @@ public abstract class AbstractDomainEvent implements DomainEvent {
 	public long version() {
 		return this.version;
 	}
+
 }

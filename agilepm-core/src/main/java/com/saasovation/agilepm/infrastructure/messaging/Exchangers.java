@@ -6,5 +6,7 @@ package com.saasovation.agilepm.infrastructure.messaging;
  * @since : ${VERSION}
  */
 public class Exchangers {
-    public static final String IDENTITY_ACCESS_EXCHANGE_NAME = "identity.access.exchange";
+    public static final String IDENTITY_ACCESS_EXCHANGE_NAME  = "identity.access.exchange";
+    public static final String AGILEPM_EXCHNAGE_NAME          = "agilepm.exchange";
+    public static final String COLLABORATION_EXCHANGE_NAME     = "collaboration.exchange";
 }

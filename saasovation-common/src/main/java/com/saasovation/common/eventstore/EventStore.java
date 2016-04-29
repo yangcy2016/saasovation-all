@@ -1,7 +1,7 @@
 package com.saasovation.common.eventstore;
 
 import com.saasovation.common.domain.DomainEvent;
-import com.saasovation.common.serializater.ObjectSerializater;
+import com.saasovation.common.serializater.ObjectSerializer;
 
 import java.util.List;
 
@@ -35,8 +35,8 @@ public class EventStore {
 		this.storedEvent = storedEvent;
 	}
 
-	public static ObjectSerializater objectSerializater() {
-		return ObjectSerializater.newInstance();
+	public static ObjectSerializer objectSerializater() {
+		return ObjectSerializer.newInstance();
 	}
 
 	private class Session {

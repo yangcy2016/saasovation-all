@@ -7,7 +7,8 @@ import com.saasovation.common.port.adapter.messaging.rabbitmq.ConnectionSettings
 import com.saasovation.common.port.adapter.messaging.rabbitmq.Exchange;
 import com.saasovation.common.port.adapter.messaging.rabbitmq.MessageParameters;
 import com.saasovation.common.port.adapter.messaging.rabbitmq.MessageProducer;
-import com.saasovation.common.serializater.ObjectSerializater;
+import com.saasovation.common.serializater.ObjectSerializer;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +21,14 @@ public class NotificationService {
 		return null;
 	}
 
-	// 事务标签
+	// restfull model
+	@Transactional
 	public NotificationLog notificationLog(NotificationLogId aNotificationLogId) {
 		return null;
 	}
 
-	// 事务标签
+	// push sub model
+	@Transactional
 	public void publishNotifications() {
 		PublishedMessageTracker publishedMessageTracker = this.publishedMessageTracker();
 		List<Notification> notifications = this.listUnPublishedNotifications(
@@ -117,13 +120,13 @@ public class NotificationService {
 				aNotification.type(),
 				Long.toString(aNotification.notificationId()),
 				aNotification.occurredOn());
-		String notification = NotificationService.objectSerializater()
+		String notification = NotificationService.objectSerializer()
 				.serialize(aNotification.domainEvent());
 		
 		producer.send(notification,messageParameters);
 	}
 	
-	public static ObjectSerializater objectSerializater(){
-		return ObjectSerializater.newInstance();
+	public static ObjectSerializer objectSerializer(){
+		return ObjectSerializer.newInstance();
 	}
 }

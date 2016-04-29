@@ -11,10 +11,7 @@ import com.saasovation.agilepm.domain.model.team.ProductOwnerRepository;
 import com.saasovation.agilepm.domain.model.team.TeamOwnerRepository;
 import com.saasovation.agilepm.domain.model.team.TeamRepository;
 import com.saasovation.agilepm.domain.model.tenant.TenantRepository;
-import com.saasovation.agilepm.infrastructure.persistence.mybatis.BacklogItemMybatisRepository;
-import com.saasovation.agilepm.infrastructure.persistence.mybatis.ProductMybatisRepository;
-import com.saasovation.agilepm.infrastructure.persistence.mybatis.SprintMybatisRepository;
-import com.saasovation.agilepm.infrastructure.persistence.mybatis.TenantMybatisRepository;
+import com.saasovation.agilepm.infrastructure.persistence.mybatis.*;
 
 public class DomainRegistry {
 
@@ -59,5 +56,9 @@ public class DomainRegistry {
 
 	public static TeamOwnerRepository teamOwnerRepository(){
 		return null;
+	}
+
+	public static ProcessTrackerRepository processTrackerRepository(){
+		return new ProcessTrackerMyBatisRepository();
 	}
 }

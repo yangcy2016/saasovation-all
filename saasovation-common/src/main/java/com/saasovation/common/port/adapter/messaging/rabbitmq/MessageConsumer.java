@@ -1,6 +1,9 @@
 package com.saasovation.common.port.adapter.messaging.rabbitmq;
 
 import com.rabbitmq.client.QueueingConsumer;
+import com.rabbitmq.client.ShutdownSignalException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
@@ -18,6 +21,8 @@ public class MessageConsumer {
     public static MessageConsumer instance(Queue queue, boolean b) {
         return new MessageConsumer(queue);
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(MessageConsumer.class);
 
     public void receiveOnly(String[] listensToEvents, MessageListener messageListener) {
         new ConsumerTask(queue.queueingConsumer(),messageListener,listensToEvents).start();
@@ -45,7 +50,7 @@ public class MessageConsumer {
                     if(filterBy(type)){
                         String messageId = delivery.getProperties().getMessageId();
                         long   deliveryTag = delivery.getEnvelope().getDeliveryTag();
-                        String textMessage = getTextResponce(delivery);
+                        String textMessage = getTextResponse(delivery);
                         Date   occurredOn  = delivery.getProperties().getTimestamp();
                         listener.handleMessage(
                                 type,
@@ -57,7 +62,11 @@ public class MessageConsumer {
                     }else{
                         System.out.println("type:"+type+" not match ignored");
                     }
-                }catch (Exception e){
+                }catch (ShutdownSignalException soe){
+                    logger.error("connect error cause by {},consumer will shutdown",soe.getMessage());
+                    throw new RuntimeException(soe);
+                }
+                catch (Exception e){
                     e.printStackTrace();
                 }
             }
@@ -72,12 +81,12 @@ public class MessageConsumer {
             return false;
         }
 
-        public String getTextResponce(QueueingConsumer.Delivery delivery) throws UnsupportedEncodingException {
+        public String getTextResponse(QueueingConsumer.Delivery delivery) throws UnsupportedEncodingException {
             return new String(delivery.getBody(),"UTF-8");
         }
 
         public void start(){
-            new Thread(this,"message-consumer").start();
+            new Thread(this,"msg-consumer").start();
         }
     }
 }

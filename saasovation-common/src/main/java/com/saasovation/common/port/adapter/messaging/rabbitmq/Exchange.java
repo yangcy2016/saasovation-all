@@ -5,6 +5,8 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.QueueingConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -14,6 +16,21 @@ public class Exchange {
 	private Channel channel;
 	private String exchangeName;
 
+	private static final Logger logger = LoggerFactory.getLogger(Exchange.class);
+
+	public enum ExchangeType{
+		FANOUT("fanout"),
+		DIRECT("direct"),
+		TOPIC("topic");
+		private String type;
+		ExchangeType(String type) {
+			this.type = type;
+		}
+		public String getType(){
+			return this.type;
+		}
+	}
+
 	public Exchange(Connection connection, Channel channel,String exchangeName) {
 		super();
 		this.connection = connection;
@@ -21,14 +38,14 @@ public class Exchange {
 		this.exchangeName = exchangeName;
 	}
 	public static Exchange fanOutInstance(ConnectionSettings settings,String exchangeName,boolean durable){
-		return createInstance(settings,exchangeName,durable,"fanout");
+		return createInstance(settings,exchangeName,durable,ExchangeType.FANOUT.getType());
 	}
 
 	public static Exchange directInstance(ConnectionSettings settings,String exchangeName,boolean durable){
-		return createInstance(settings,exchangeName,durable,"direct");
+		return createInstance(settings,exchangeName,durable,ExchangeType.DIRECT.getType());
 	}
 	public static Exchange topicInstance(ConnectionSettings settings,String exchangeName,boolean durable){
-		return createInstance(settings,exchangeName,durable,"topic");
+		return createInstance(settings,exchangeName,durable,ExchangeType.TOPIC.getType());
 	}
 
 	private static Exchange createInstance(ConnectionSettings settings,String exchangeName,boolean durable,String type){
@@ -75,6 +92,7 @@ public class Exchange {
 				message.getBytes());
 	}
 	public void call(String message,BasicProperties properties,String routeKey) throws IOException{
+		logger.info("send message to {} msg:{}",exchangeName,message);
 		channel.basicPublish(
 				exchangeName,
 				routeKey,
@@ -94,6 +112,7 @@ public class Exchange {
 		try {
 			channel.queueDeclare(queueName,false,false,false,null);
 			channel.queueBind(queueName, exchangeName, routKey);
+			logger.info("{} queue bind to {} with route key {}",queueName,exchangeName,routKey);
 			consumer = new QueueingConsumer(channel);
 			channel.basicConsume(queueName,true,queueName,consumer);
 		} catch (IOException e) {

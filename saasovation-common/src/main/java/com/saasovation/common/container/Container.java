@@ -14,8 +14,9 @@ public class Container {
         return instance;
     }
 
-    public void init(ApplicationContext context){
+    public Container init(ApplicationContext context){
         this.context = context;
+        return this;
     }
 
     public ApplicationContext getContext(){

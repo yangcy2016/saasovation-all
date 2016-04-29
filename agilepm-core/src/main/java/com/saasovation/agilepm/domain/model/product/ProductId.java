@@ -1,15 +1,17 @@
 package com.saasovation.agilepm.domain.model.product;
 
+import com.google.gson.annotations.Expose;
+
 public class ProductId {
-	
+	@Expose
 	private String id;
 	
 	public ProductId(String aProductId) {
-		// TODO Auto-generated constructor stub
+		this.id = aProductId;
 	}
 
 	public String id() {
-		return null;
+		return this.id;
 	}
 
 }

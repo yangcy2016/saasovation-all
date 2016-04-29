@@ -9,4 +9,12 @@ public class Discussion {
 		this.descriptor = discussionDescriptor;
 		this.availability = availability;
 	}
+
+	public DiscussionAvailability availability(){
+		return this.availability;
+	}
+
+	public Discussion nowReady(DiscussionDescriptor descriptor) {
+		return new Discussion(descriptor,DiscussionAvailability.READY);
+	}
 }
