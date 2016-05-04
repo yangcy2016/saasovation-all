@@ -9,12 +9,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 
 public class Exchange {
 	private Connection connection;
 	private Channel channel;
 	private String exchangeName;
+
+	private static int retry = 5;
 
 	private static final Logger logger = LoggerFactory.getLogger(Exchange.class);
 
@@ -67,13 +70,30 @@ public class Exchange {
 	}
 
 	private static Connection connect(ConnectionSettings settings) throws Exception{
-		ConnectionFactory factory = new ConnectionFactory();
-		factory.setHost(settings.getHost());
-		factory.setPort(settings.getPort());
-		factory.setUsername(settings.getUserName());
-		factory.setPassword(settings.getPassword());
-		Connection connection = factory.newConnection();
+		Connection connection = null;
+		try{
+			ConnectionFactory factory = new ConnectionFactory();
+			factory.setHost(settings.getHost());
+			factory.setPort(settings.getPort());
+			factory.setUsername(settings.getUserName());
+			factory.setPassword(settings.getPassword());
+			connection = factory.newConnection();
+			resetRetry(5);
+		}catch (Exception e){
+			logger.error("can't connect to rabbitmq server");
+			if(retry-->0){
+				logger.info("retry to connect to rabbit mq server {}",retry);
+				TimeUnit.SECONDS.sleep(5);
+				connection = connect(settings);
+			}else {
+				throw e;
+			}
+		}
 		return connection;
+	}
+
+	private static void resetRetry(int cnt){
+		retry = cnt;
 	}
 	
 	public void call(String message,String routeKey) throws IOException{
