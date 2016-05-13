@@ -1,6 +1,7 @@
 package com.saasovation.common.port.adapter.messaging.rabbitmq;
 
 import java.util.Date;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author : huanghy
@@ -12,7 +13,6 @@ public abstract class ExchangeListener {
     private Queue queue;
 
     public ExchangeListener() {
-
     }
     /**
      * 根据指定的类型进行消息处理 不满足的类型将被忽略
@@ -26,6 +26,8 @@ public abstract class ExchangeListener {
      * @return
      */
     protected abstract String[] listensToEvents();
+
+
 
     /**
      *附加到需要监听的队列
@@ -45,13 +47,12 @@ public abstract class ExchangeListener {
      * 注册消费端
      */
     public void registerConsumer(){
-        this.messageConsumer = MessageConsumer.instance(this.queue(),false);
+        this.messageConsumer = MessageConsumer.instance(this.queue(),false,this);
         this.messageConsumer.receiveOnly(this.listensToEvents(),
-                new MessageListener(MessageListener.Type.TEXT){
+                new MessageListener<String>(){
 
                     @Override
-                    public void handleMessage(String type, String messageId, Date timestamp,
-                                              String textMessage, long deliveryTag, boolean isRedelivery) {
+                    public void handleMessage(String type,String messageId, Date timestamp, String textMessage, long deliveryTag, boolean isRedelivery) {
                         //pro process
                         filteredDispatch(type,textMessage);
                         //after process
@@ -59,4 +60,23 @@ public abstract class ExchangeListener {
                 });
     }
 
+    public void registerConsumer(ExecutorService executor){
+        this.messageConsumer = MessageConsumer.instance(this.queue(),false,this);
+        this.messageConsumer.receiveOnly(this.listensToEvents(),
+                new MessageListener<String>(){
+
+                    @Override
+                    public void handleMessage(String type,String messageId, Date timestamp, String textMessage, long deliveryTag, boolean isRedelivery) {
+                        //pro process
+                        filteredDispatch(type,textMessage);
+                        //after process
+                    }
+                },executor);
+    }
+
+
+
+    public String queueName(){
+        return getClass().getSimpleName();
+    }
 }

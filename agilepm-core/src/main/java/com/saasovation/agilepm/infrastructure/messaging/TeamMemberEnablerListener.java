@@ -72,6 +72,7 @@ public class TeamMemberEnablerListener extends ExchangeListener {
         };
     }
 
+
     public static void main(String[] args) {
         TeamMemberEnablerListener listener = new TeamMemberEnablerListener();
         Exchange exchange = Exchange.directInstance(

@@ -21,6 +21,7 @@ public class MessageConsumerTest {
             protected String[] listensToEvents() {
                 return new String[0];
             }
+
         };
         listener.registerConsumer();
     }

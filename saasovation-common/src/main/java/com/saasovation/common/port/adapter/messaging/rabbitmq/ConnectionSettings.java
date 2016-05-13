@@ -6,6 +6,16 @@ public class ConnectionSettings {
 	private String host = "172.28.250.91";
 	private int port = 5672;
 
+	/**
+	 *quality of service
+	 */
+	private int qos = 100;
+
+	/*second**/
+	private long retryInterval = 5;
+
+	private int headBeat = 5;
+
 	private static final ConnectionSettings instance = new ConnectionSettings();
 
 	public static ConnectionSettings instance() {
@@ -44,4 +54,28 @@ public class ConnectionSettings {
 		this.port = port;
 	}
 
+
+	public long getRetryInterval() {
+		return retryInterval;
+	}
+
+	public void setRetryInterval(long retryInterval) {
+		this.retryInterval = retryInterval;
+	}
+
+	public int getQos() {
+		return qos;
+	}
+
+	public void setQos(int qos) {
+		this.qos = qos;
+	}
+
+	public int getHeadBeat() {
+		return headBeat;
+	}
+
+	public void setHeadBeat(int headBeat) {
+		this.headBeat = headBeat;
+	}
 }

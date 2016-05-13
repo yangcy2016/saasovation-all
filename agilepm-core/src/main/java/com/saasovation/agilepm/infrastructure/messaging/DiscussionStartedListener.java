@@ -1,9 +1,9 @@
 package com.saasovation.agilepm.infrastructure.messaging;
 
 import com.saasovation.agilepm.application.product.ProductApplicationService;
+import com.saasovation.common.container.Container;
 import com.saasovation.common.media.NotificationReader;
 import com.saasovation.common.port.adapter.messaging.rabbitmq.AutomaticExchangeListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,9 +13,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DiscussionStartedListener extends AutomaticExchangeListener{
-
-    @Autowired
-    private ProductApplicationService applicationService;
 
     @Override
     protected void filteredDispatch(String type, String textMessage) {
@@ -30,7 +27,8 @@ public class DiscussionStartedListener extends AutomaticExchangeListener{
     }
 
     public ProductApplicationService productApplicationService(){
-        return applicationService;
+        return  Container.instance().getBean("com.saasovation.agilepm.application.product.ProductApplicationService",
+                ProductApplicationService.class);
     }
 
     @Override
@@ -49,4 +47,5 @@ public class DiscussionStartedListener extends AutomaticExchangeListener{
     public String routeKey() {
         return "*.started";
     }
+
 }

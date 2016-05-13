@@ -1,14 +1,13 @@
 package com.saasovation.common.port.adapter.messaging.rabbitmq;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.QueueingConsumer;
+import com.rabbitmq.client.*;
+import com.rabbitmq.client.impl.DefaultExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 
@@ -18,6 +17,8 @@ public class Exchange {
 	private String exchangeName;
 
 	private static int retry = 5;
+
+	private  ConnectionSettings settings;
 
 	private static final Logger logger = LoggerFactory.getLogger(Exchange.class);
 
@@ -34,11 +35,12 @@ public class Exchange {
 		}
 	}
 
-	public Exchange(Connection connection, Channel channel,String exchangeName) {
+	private Exchange(Connection connection, Channel channel,String exchangeName,ConnectionSettings settings) {
 		super();
-		this.connection = connection;
-		this.channel = channel;
+		setConnection(connection);
+		setChannel(channel);
 		this.exchangeName = exchangeName;
+		this.settings = settings;
 	}
 	public static Exchange fanOutInstance(ConnectionSettings settings,String exchangeName,boolean durable){
 		return createInstance(settings,exchangeName,durable,ExchangeType.FANOUT.getType());
@@ -56,12 +58,38 @@ public class Exchange {
 		try {
 			Connection connection = connect(settings);
 			Channel channel = initChannel(connection);
-			channel.exchangeDeclare(exchangeName,type,durable);
-			exchange = new Exchange(connection,channel,exchangeName);
+			channel.exchangeDeclare(exchangeName, type, durable);
+			exchange = new Exchange(connection,channel,exchangeName,settings);
 		}catch (Exception e){
 			throw new RuntimeException(e);
 		}
 		return exchange;
+	}
+
+
+
+	public void reconnect(){
+		logger.info("reconnect to mq server:{},{}",settings.getHost(),settings.getPort());
+		try {
+			Connection newConnection = connect(settings);
+			Channel newChannel = initChannel(newConnection);
+			replaceWith(newConnection,newChannel);
+		}catch (Exception e){
+			throw new ReconnectionFailed(e);
+		}
+	}
+
+	private void replaceWith(Connection conn, Channel channel){
+		setConnection(conn);
+		setChannel(channel);
+	}
+
+	private void setConnection(Connection connection){
+		this.connection = connection;
+	}
+
+	private void setChannel(Channel channel){
+		this.channel = channel;
 	}
 
 	private static Channel initChannel(Connection connection) throws Exception{
@@ -77,16 +105,18 @@ public class Exchange {
 			factory.setPort(settings.getPort());
 			factory.setUsername(settings.getUserName());
 			factory.setPassword(settings.getPassword());
+			factory.setExceptionHandler(new DefaultExceptionHandler());
+			factory.setRequestedHeartbeat(settings.getHeadBeat());
 			connection = factory.newConnection();
-			resetRetry(5);
+			resetRetry(retry);
 		}catch (Exception e){
 			logger.error("can't connect to rabbitmq server");
 			if(retry-->0){
 				logger.info("retry to connect to rabbit mq server {}",retry);
-				TimeUnit.SECONDS.sleep(5);
+				TimeUnit.SECONDS.sleep(settings.getRetryInterval());
 				connection = connect(settings);
 			}else {
-				throw e;
+				throw new ReconnectionFailed(e);
 			}
 		}
 		return connection;
@@ -127,7 +157,7 @@ public class Exchange {
 	}
 
 
-	public QueueingConsumer bindQueue(String queueName, String routKey){
+	public QueueingConsumer queueingConsumer(String queueName, String routKey){
 		QueueingConsumer consumer = null;
 		try {
 			channel.queueDeclare(queueName,false,false,false,null);
@@ -140,7 +170,67 @@ public class Exchange {
 		}
 		return consumer;
 	}
-	
+
+	public <T> void defaultConsumer(MessageListener<T> listener,Decoder<T> decoder,String queueName) throws Exception {
+		try {
+			channel.basicConsume(queueName,true,new DefaultConsumer(channel){
+				@Override
+				public void handleDelivery(String consumerTag, Envelope envelope,
+										   BasicProperties properties, byte[] body) throws IOException {
+					String 	type      	= properties.getType();
+					String 	messageId 	= properties.getMessageId();
+					Date   	occurredOn 	= properties.getTimestamp();
+					T      	message    	= decoder.decode(body);
+					long   	deliveryTag 	= envelope.getDeliveryTag();
+					boolean isRedeliver 	= envelope.isRedeliver();
+
+					listener.handleMessage(
+							type,
+							messageId,
+							occurredOn,
+							message,
+							deliveryTag,
+							isRedeliver);
+				}
+			});
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+	public <T> void defaultConsumerWithRetry(MessageListener<T> listener,Decoder<T> decoder,String queueName) throws Exception {
+		try {
+			channel.basicConsume(queueName,true,new DefaultConsumer(channel){
+				@Override
+				public void handleDelivery(String consumerTag, Envelope envelope,
+										   BasicProperties properties, byte[] body) throws IOException {
+					String type = properties.getType();
+					String messageId = properties.getMessageId();
+					Date occurredOn = properties.getTimestamp();
+					T message = decoder.decode(body);
+					long deliveryTag = envelope.getDeliveryTag();
+					boolean isRedeliver = envelope.isRedeliver();
+					listener.handleMessage(
+							type,
+							messageId,
+							occurredOn,
+							message,
+							deliveryTag,
+							isRedeliver);
+				}
+
+				@Override
+				public void handleShutdownSignal(String consumerTag, ShutdownSignalException sig) {
+					reconnect();
+				}
+			});
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+
+
 	public void close(){
 		try {
 			this.connection.close();

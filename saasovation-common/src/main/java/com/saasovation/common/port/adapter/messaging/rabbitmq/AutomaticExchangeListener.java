@@ -14,9 +14,6 @@ public abstract class AutomaticExchangeListener extends ExchangeListener{
 
     public abstract String exchangeName();
 
-    private String queueName(){
-        return getClass().getSimpleName();
-    }
 
     public void attachToQueue(){
         Exchange exchange = Exchange.topicInstance(ConnectionSettings.instance(), exchangeName(), true);

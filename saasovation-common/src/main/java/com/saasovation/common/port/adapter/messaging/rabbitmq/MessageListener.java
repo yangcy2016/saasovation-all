@@ -7,17 +7,14 @@ import java.util.Date;
  * @create : 2016/4/27 0027 下午 2:53
  * @since : ${VERSION}
  */
-public abstract class MessageListener {
-    private Type type;
+public abstract class MessageListener<T> {
 
-    public MessageListener(Type type) {
-        this.type = type;
+    public MessageListener() {
+
     }
 
     public abstract void handleMessage(String type,String messageId,Date timestamp,
-                              String textMessage,long deliveryTag,boolean isRedelivery);
+                              T textMessage,long deliveryTag,boolean isRedelivery);
 
-    public enum Type{
-        TEXT
-    }
+
 }

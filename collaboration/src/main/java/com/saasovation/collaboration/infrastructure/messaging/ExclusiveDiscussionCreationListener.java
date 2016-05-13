@@ -62,4 +62,6 @@ public class ExclusiveDiscussionCreationListener extends AutomaticExchangeListen
     public String routeKey() {
         return "*.requested";
     }
+
+
 }

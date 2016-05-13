@@ -6,8 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Date;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -23,6 +23,8 @@ public class MessageConsumer implements Runnable{
     private String name;
     private static AtomicInteger cnt = new AtomicInteger(0);
 
+    private ExchangeListener exchangeListener;
+
     private MessageConsumer(Queue queue) {
         this(queue,"msg-consumer-"+cnt.incrementAndGet());
     }
@@ -32,8 +34,14 @@ public class MessageConsumer implements Runnable{
         this.queue = queue;
     }
 
-    public static MessageConsumer instance(Queue queue, boolean b) {
-        return new MessageConsumer(queue);
+    private MessageConsumer(Queue queue,String name,ExchangeListener exchangeListener) {
+        this.name = name;
+        this.queue = queue;
+        this.exchangeListener = exchangeListener;
+    }
+
+    public static MessageConsumer instance(Queue queue, boolean b,ExchangeListener listener) {
+        return new MessageConsumer(queue,"msg-consumer-"+cnt.incrementAndGet(),listener);
     }
 
     public static MessageConsumer instance(Queue queue, boolean b,String name) {
@@ -51,40 +59,77 @@ public class MessageConsumer implements Runnable{
         logger.info("start message consumer {} to {}",name(),queue.queueName());
     }
 
+    public void receiveOnly(String[] listensToEvents, MessageListener messageListener,ExecutorService executor) {
+        Assert.notNull(listensToEvents, "listensToEvents must not be null");
+        Assert.notNull(listensToEvents, "messageListener must not be null");
+        this.listensToEvents = listensToEvents;
+        this.messageListener = messageListener;
+        executor.execute(this);
+        logger.info("start message consumer {} to {}",name(),queue.queueName());
+    }
+
     private String name(){
         return this.name;
     }
 
-    public void run(){
-        logger.info("Wait for receive message ...");
+    private  void looConsumer(){
+        QueueingConsumer.Delivery delivery;
         while (!stop){
-            QueueingConsumer.Delivery delivery;
             try {
                 delivery = queue.queueingConsumer().nextDelivery();
                 String type      = delivery.getProperties().getType();
                 if(filterBy(type)){
                     String messageId = delivery.getProperties().getMessageId();
                     long   deliveryTag = delivery.getEnvelope().getDeliveryTag();
-                    String textMessage = getTextResponse(delivery);
+                    String textMessage = new TextDecoder().decode(delivery.getBody());
                     Date   occurredOn  = delivery.getProperties().getTimestamp();
+                    boolean isRedelivery = delivery.getEnvelope().isRedeliver();
                     messageListener.handleMessage(
                             type,
                             messageId,
                             occurredOn,
                             textMessage,
                             deliveryTag,
-                            false);
+                            isRedelivery);
                 }else{
-                   logger.info("type:"+type+" not match ignored");
+                    logger.info("type:"+type+" not match ignored");
                 }
             }catch (ShutdownSignalException soe){
-                logger.error("connect error cause by {},consumer will shutdown",soe.getMessage());
-                stop();
+                try {
+                    queue.exchange().reconnect();
+                } catch (Exception e) {
+                    logger.error("connect error cause by {},consumer will shutdown",soe.getMessage());
+                    stop();
+                }
             }
             catch (Exception e){
                 e.printStackTrace();
             }
         }
+    }
+
+    private void loopConsumer1(){
+        while (!stop){
+            Exchange exchange = queue.exchange();
+            try {
+                exchange.defaultConsumerWithRetry(
+                        messageListener,
+                        new TextDecoder(),
+                        queue.queueName()
+                );
+            }catch (ReconnectionFailed failed){
+                logger.error("connect error cause by {},consumer will shutdown",failed.getMessage());
+                stop();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void run(){
+        logger.info("Wait for receive message ...");
+        looConsumer();
     }
 
     public boolean filterBy(String type){
@@ -94,10 +139,6 @@ public class MessageConsumer implements Runnable{
             }
         }
         return false;
-    }
-
-    public String getTextResponse(QueueingConsumer.Delivery delivery) throws UnsupportedEncodingException {
-        return new String(delivery.getBody(),"UTF-8");
     }
 
     public void stop(){
